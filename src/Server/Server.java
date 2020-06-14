@@ -178,6 +178,11 @@ public class Server {
 				String nmsg = "NEWROOM|"+roomName+"|"+pk;
 				sendAll(nmsg);
 				pk++;
+				this.send("MAKEROOM|"+pk);
+				//RMI 사용하여 방생성하기 : pk를 생성하여 RMI 주소 열기
+				/*
+				 * 
+				 */
 			}
 			if(protocol.equals("JOINROOM")) {
 				String roomPK = st.nextToken();
@@ -208,7 +213,6 @@ public class Server {
 					user_list.remove(idx);
 					sendAll("USER_OUT|"+ID);	
 					//방 나가기?
-					
 					try {
 						is.close();
 						os.close();
@@ -219,6 +223,7 @@ public class Server {
 						e1.printStackTrace();
 					}
 					e.printStackTrace();
+					break;//연결 해제 된 것 반복문 종료
 				}
 			}
 		}

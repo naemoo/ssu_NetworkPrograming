@@ -43,6 +43,7 @@ public class Lobby extends JFrame implements ActionListener{
 		});
 		listen.start();
 		this.c = c;
+		this.setTitle(c.getID());
 	}
 	
 	//lobbyUI GUI
@@ -137,7 +138,6 @@ public class Lobby extends JFrame implements ActionListener{
 					String msg = "MAKEROOM|"+roomName;
 					c.send(msg);
 					//intoDialog();
-					
 				}
 				else
 					JOptionPane.showMessageDialog(null, "올바른 채팅방이름이 아닙니다.","Dialog Error", JOptionPane.ERROR_MESSAGE);
@@ -176,6 +176,16 @@ public class Lobby extends JFrame implements ActionListener{
 			roomTable.add(new Room(roomName, PK));
 			curList();
 		}
+		else if(protocol.equals("MAKEROOM")) {
+			String PK = st.nextToken();
+			//RMI를 통해서 접속하기 pk 받아서 입력하기
+		}
+		else if(protocol.equals("USER_OUT")) {
+			String outUser = st.nextToken();
+			int outUserIdx = Collections.binarySearch(userTable, outUser);
+			userTable.remove(outUserIdx);
+			curList();
+		}
 	}
 	
 	class Room implements Comparable<Room>{
@@ -187,6 +197,7 @@ public class Lobby extends JFrame implements ActionListener{
 		}
 		@Override
 		public int compareTo(Room o) {
+			//PK순으로 저장을 한다.
 			return Integer.parseInt(PK) - Integer.parseInt(o.PK);
 		}
 		@Override
