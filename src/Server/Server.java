@@ -2,6 +2,8 @@ package Server;
 
 import java.util.*;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
@@ -13,13 +15,17 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.Naming;
+import java.security.KeyStore;
 
 public class Server {
 	//UserInfo List
 	static private HashMap<String, Client> userInfoTable;
 	
-	//IP및 Port
+	//Port 및 인증서 경로
 	private int port = 8888;
+	String ksName = "D:\\NetworkProgramming\\ProblemMan\\bin\\.keystore\\SSLSocketServerKey";
+	char keyStorePass[] = "123456".toCharArray();
+    char keyPass[] = "123456".toCharArray();
 	
 	//User와 대화방 관리 List
 	private List<User> user_list;
@@ -29,8 +35,11 @@ public class Server {
 	private ServerSocket serverScoket;
 	
 	// SSL Network Resource
-//	SSLServerSocketFactory sslserversocketfactory;
-//	SSLServerSocket sslserversocket;
+	private SSLServerSocketFactory ssf = null;
+	private KeyStore ks;
+	private KeyManagerFactory kmf;
+	private SSLContext sc;
+	
 	
 	//Room PK
 	private int pk;
@@ -80,10 +89,21 @@ public class Server {
 	
 	public void startServer() {
 		try {
-//			sslserversocketfactory = (SSLServerSocketFactory)SSLServerSocketFactory.getDefault();
-//			sslserversocket = (SSLServerSocket)sslserversocketfactory.createServerSocket(port);
-			serverScoket = new ServerSocket(port);
+			ks = KeyStore.getInstance("JKS");
+	        ks.load(new FileInputStream(ksName), keyStorePass);
+			
+	        kmf = KeyManagerFactory.getInstance("SunX509");
+	        kmf.init(ks, keyPass);
+			
+	        sc = SSLContext.getInstance("TLS");
+	        sc.init(kmf.getKeyManagers(), null, null);
+	        
+	        ssf = sc.getServerSocketFactory(); // SSL socket factory
+	        serverScoket = (SSLServerSocket) ssf.createServerSocket(port); // SSL socket server
+	        
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -92,7 +112,6 @@ public class Server {
 		Thread th = new Thread(()-> {
 			while(true) {
 				try {
-//					SSLSocket sock = (SSLSocket)sslserversocket.accept();
 					Socket sock = serverScoket.accept();
 					User u = new User(sock);
 					System.out.println(u.ID+"와 연결");

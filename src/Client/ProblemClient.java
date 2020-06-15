@@ -13,6 +13,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.swing.JOptionPane;
 import Server.Login;
 /*
@@ -36,7 +38,8 @@ public class ProblemClient {
 	private PrintWriter out;
 	
 	//Network Resource
-	private Socket sock;
+	private SSLSocket sock;
+	private SSLSocketFactory f = null;
 	
 	public ProblemClient() {
 		String mServer = "127.0.0.1";
@@ -57,9 +60,18 @@ public class ProblemClient {
 	
 	void network(String id) {// network 자원 구성 -> 쓰레드를 이용
 		try {
-			sock = new Socket("127.0.0.1", 8888);
-			if (sock != null)// 성공적으로 연결 되었다면 그 다음 과정 실행
+			// trustedcerts 파일 경로
+			System.setProperty("javax.net.ssl.trustStore", "trustedcerts");
+	        System.setProperty("javax.net.ssl.trustStorePassword", "123456");
+	        f = (SSLSocketFactory) SSLSocketFactory.getDefault(); // SSLSocketFacroty info
+	        sock = (SSLSocket) f.createSocket("127.0.0.1", 8888); // Socket Create
+	        
+			if (sock != null) {// 성공적으로 연결 되었다면 그 다음 과정 실행
+				String[] supported = sock.getSupportedCipherSuites();
+		        sock.setEnabledCipherSuites(supported);
+		        sock.startHandshake();
 				connection(id);
+			}
 		} catch (UnknownHostException e) {
 			JOptionPane.showMessageDialog(null, "서버를 찾지 못 하였습니다.","연결 실패", JOptionPane.ERROR_MESSAGE);
 		} catch (IOException e) {
