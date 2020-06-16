@@ -2,6 +2,10 @@ package Client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.Collections;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -9,6 +13,9 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
+import Server.GameRoom;
+
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -26,7 +33,8 @@ public class Lobby extends JFrame implements ActionListener{
 	private Vector<String> userTable;
 	private Vector<Room> roomTable;
 	
-	private ProblemClient c;
+	ProblemClient c;
+	ProblemRoom probRoom;
 	
 	public Lobby(ProblemClient c) {
 		lobbyInitUI();
@@ -37,8 +45,9 @@ public class Lobby extends JFrame implements ActionListener{
 		Thread listen = new Thread(()->{
 			while(true) {
 				String msg = c.read();
+				if(msg.contains("GAME|"))
+					probRoom.inMessage(msg);
 				lobbyInMessage(msg);
-				System.out.println(msg);
 			}
 		});
 		listen.start();
@@ -120,14 +129,13 @@ public class Lobby extends JFrame implements ActionListener{
 		else if(e.getSource() == joinDialog_btn) {
 			Room room = (Room)room_list.getSelectedValue();
 			if(room!= null) {
-				System.out.println(room+"에 참여하기");
-				//JOINROOM%ROOM_PK%NEW_USER
-//				intoDialog();
+				System.out.println(room+"선택");
+				//JOINROOM%ROOM_PK
+				c.send("JOINROOM|"+room.PK);
+				
 			}
 			else
 				JOptionPane.showMessageDialog(null, "참여하고 싶은 대화방을 선택하세요.","Dialog Error", JOptionPane.ERROR_MESSAGE);
-			
-			//삭제
 		}
 		else if(e.getSource()==makeDialog_btn){
 			String roomName = JOptionPane.showInputDialog("채팅방 이름을 설정하세요.");
@@ -137,7 +145,6 @@ public class Lobby extends JFrame implements ActionListener{
 					//MAKEROOM%ROOMNAME
 					String msg = "MAKEROOM|"+roomName;
 					c.send(msg);
-					//intoDialog();
 				}
 				else
 					JOptionPane.showMessageDialog(null, "올바른 채팅방이름이 아닙니다.","Dialog Error", JOptionPane.ERROR_MESSAGE);
@@ -146,7 +153,6 @@ public class Lobby extends JFrame implements ActionListener{
 	}
 	
 	private void lobbyInMessage(String message) {
-//		System.out.println(message+"들어옴");
 		StringTokenizer st = new StringTokenizer(message,"|");
 		String protocol = st.nextToken();
 		if(protocol.equals("NEW_USER")) {
@@ -176,9 +182,25 @@ public class Lobby extends JFrame implements ActionListener{
 			roomTable.add(new Room(roomName, PK));
 			curList();
 		}
-		else if(protocol.equals("MAKEROOM")) {
+		else if(protocol.equals("JOINROOM")) {
 			String PK = st.nextToken();
 			//RMI를 통해서 접속하기 pk 받아서 입력하기
+			GameRoom gr;
+			try {
+				gr = (GameRoom) Naming.lookup("rmi://127.0.0.1:1099/"+PK);
+				probRoom = new ProblemRoom(gr,this);
+				this.setVisible(false);
+				gr.invalidateUser();
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NotBoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		else if(protocol.equals("USER_OUT")) {
 			String outUser = st.nextToken();

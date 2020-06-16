@@ -1,6 +1,7 @@
 package Client;
 
 import java.net.MalformedURLException;
+
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -17,13 +18,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.swing.JOptionPane;
 import Server.Login;
-/*
-public class ProblemClient {
-	
-	public static void main(String[] args) {
-		
-	}
-}*/
 
 public class ProblemClient {
 	private String id;

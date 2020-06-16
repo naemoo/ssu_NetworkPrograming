@@ -8,13 +8,12 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 
-import Server.Server.RoomInfo;
-import Server.Server.User;
-
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.security.KeyStore;
 
 public class Server {
@@ -193,21 +192,38 @@ public class Server {
 			}
 			if(protocol.equals("MAKEROOM")) {
 				String roomName = st.nextToken();
-				room_list.add(new RoomInfo(roomName, this));
-				String nmsg = "NEWROOM|"+roomName+"|"+pk;
-				sendAll(nmsg);
-				pk++;
-				this.send("MAKEROOM|"+pk);
-				//RMI 사용하여 방생성하기 : pk를 생성하여 RMI 주소 열기
-				/*
-				 * 
-				 */
+				// 해당 pk에 대한 RMI Server 열기
+				GameRoom gr;
+				try {
+					RoomInfo newRoom = new RoomInfo(roomName, this);
+					
+					gr = new GameRoomImpl(newRoom);
+					Naming.rebind("rmi://127.0.0.1:1099/"+pk,gr);
+					System.out.println("서버열기 완료"+pk);
+					
+					room_list.add(newRoom);
+					String nmsg = "NEWROOM|"+roomName+"|"+pk;
+					sendAll(nmsg);
+					
+					nmsg = "JOINROOM|"+pk;
+					send(nmsg);
+					
+					// Increase Room's Primary Key  
+					pk++;
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
 			}
 			if(protocol.equals("JOINROOM")) {
 				String roomPK = st.nextToken();
 				for(RoomInfo r: room_list) {
 					if(r.pk == Integer.parseInt(roomPK)) {
 						r.addUser(this);
+						String nmsg = "JOINROOM|"+r.pk;
+						send(nmsg);
+						
 					}
 				}
 			}
@@ -260,7 +276,9 @@ public class Server {
 	class RoomInfo implements Comparable<RoomInfo>{
 		private String roomName;
 		private int pk;
-		private List<User> room_user_list = new LinkedList<>();
+		List<User> room_user_list = new LinkedList<>();
+		String problem = "";
+		String answer = "";
 		
 		
 		public RoomInfo(String roomName,User u) {
@@ -274,6 +292,19 @@ public class Server {
 		
 		public void addUser(User u) {
 			room_user_list.add(u);
+		}
+		
+		public void delUser(String userName) {
+			for(int i = 0;i<room_user_list.size();i++) {
+				if(room_user_list.get(i).ID.equals(userName))
+					room_user_list.remove(i);
+			}
+		}
+		
+		public void roomSendAll(String msg) {
+			for(User u: room_user_list) {
+				u.send(msg);
+			}
 		}
 	}
 	
