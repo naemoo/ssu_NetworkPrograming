@@ -11,7 +11,7 @@
 ![image](https://user-images.githubusercontent.com/50524321/84813604-29e30100-b04b-11ea-8857-c594658b89c4.png)
 ### Lobby UI (현재 접속한 User 목록, User목록에서 User 선택 후 쪽지 기능, 방 만들기, 방 참가기능
 ![image](https://user-images.githubusercontent.com/50524321/84814275-32880700-b04c-11ea-8937-2473626ebe36.png)
-### GameRoom UI (채팅 기능 및 정답 처리)
+### GameRoom UI (채팅 기능, 정답 처리 및 문제 난이도 선택)
 ##### 1. 기본적인 채팅기능
 ![image](https://user-images.githubusercontent.com/50524321/84815097-7b8c8b00-b04d-11ea-99e1-fbdf8c510e68.png)
 ##### 2. 정답 시
