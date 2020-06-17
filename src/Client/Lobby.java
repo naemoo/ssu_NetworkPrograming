@@ -77,11 +77,11 @@ public class Lobby extends JFrame implements ActionListener{
 		contentPane.add(note_btn);
 		
 		joinDialog_btn = new JButton("Join Dialog");
-		joinDialog_btn.setBounds(122, 421, 91, 23);
+		joinDialog_btn.setBounds(122, 421, 96, 23);
 		contentPane.add(joinDialog_btn);
 		
 		makeDialog_btn = new JButton("Make Dialog");
-		makeDialog_btn.setBounds(232, 421, 91, 23);
+		makeDialog_btn.setBounds(232, 421, 96, 23);
 		contentPane.add(makeDialog_btn);
 		
 		room_list = new JList();
@@ -206,6 +206,16 @@ public class Lobby extends JFrame implements ActionListener{
 			String outUser = st.nextToken();
 			int outUserIdx = Collections.binarySearch(userTable, outUser);
 			userTable.remove(outUserIdx);
+			curList();
+		}
+		else if(protocol.equals("DELROOM")) {
+			String PK=st.nextToken();
+			for(int i =0;i<roomTable.size();i++) {
+				Room r = roomTable.get(i);
+				if(r.PK.equals(PK)) {
+					roomTable.remove(i);
+				}
+			}
 			curList();
 		}
 	}

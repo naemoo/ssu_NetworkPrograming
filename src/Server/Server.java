@@ -195,7 +195,7 @@ public class Server {
 				// 해당 pk에 대한 RMI Server 열기
 				GameRoom gr;
 				try {
-					RoomInfo newRoom = new RoomInfo(roomName, this);
+					RoomInfo newRoom = new RoomInfo(roomName, this,pk);
 					
 					gr = new GameRoomImpl(newRoom);
 					Naming.rebind("rmi://127.0.0.1:1099/"+pk,gr);
@@ -210,6 +210,7 @@ public class Server {
 					
 					// Increase Room's Primary Key  
 					pk++;
+					
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				} catch (MalformedURLException e) {
@@ -232,7 +233,7 @@ public class Server {
 		//메세지 보내기
 		private void send(String msg) {
 			out.println(msg);
-			System.out.println(msg+"보내기");
+//			System.out.println(msg+"보내기");
 		}
 		
 		@Override
@@ -281,13 +282,18 @@ public class Server {
 		String answer = "";
 		
 		
-		public RoomInfo(String roomName,User u) {
+		public RoomInfo(String roomName,User u,int pk) {
 			this.roomName = roomName;
 			room_user_list.add(u);
+			this.pk = pk;
 		}
 		@Override
 		public int compareTo(RoomInfo r) {
 			return pk - r.pk;
+		}
+		@Override
+		public String toString() {
+			return roomName + pk;
 		}
 		
 		public void addUser(User u) {
@@ -298,6 +304,9 @@ public class Server {
 			for(int i = 0;i<room_user_list.size();i++) {
 				if(room_user_list.get(i).ID.equals(userName))
 					room_user_list.remove(i);
+			}
+			if(room_user_list.size()==0) {
+				sendAll("DELROOM|" + pk);
 			}
 		}
 		
